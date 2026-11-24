@@ -74,13 +74,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Área</label>
-            <input id="area_derivada" list="areas-sugeridas" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Legales, Gobierno...">
+            <input id="area_derivada" list="areas-sugeridas" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Seleccioná o escribí el área...">
             <datalist id="areas-sugeridas">
-              <option value="Legales">
-              <option value="Gobierno">
               <option value="IGPJ">
               <option value="Registro Civil">
               <option value="RPI">
+              <option value="CODECI">
+              <option value="Gobierno">
+              <option value="Legales">
             </datalist>
           </div>
           <div>
@@ -131,6 +132,16 @@
       return p.length === 3 ? `${Number(p[2])}/${Number(p[1])}/${p[0]}` : v;
     };
 
+    const SIGLAS_AREA = new Set(["igpj", "rpi", "codeci"]);
+    const formatArea = str => {
+      if (!str) return "";
+      return str.trim().split(/\s+/).map(w => {
+        const low = w.toLowerCase();
+        if (SIGLAS_AREA.has(low)) return low.toUpperCase();
+        return low.charAt(0).toUpperCase() + low.slice(1);
+      }).join(" ");
+    };
+
     $("login-btn").onclick = () => {
       if ($("pass-input").value === CLAVE_ADMIN) {
         $("login-overlay").classList.add("hidden");
@@ -161,6 +172,7 @@
         const vb = b.vencimiento_prorroga || b.primer_vencimiento || "9999";
         return va.localeCompare(vb);
       }).forEach(p => {
+        const areaFormateada = formatArea(p.area_derivada);
         const div = document.createElement("div");
         div.className = "py-3.5 flex items-start justify-between gap-4";
         div.innerHTML = `
@@ -168,7 +180,7 @@
             <div class="flex flex-wrap items-center gap-2">
               <strong class="text-sm font-bold text-slate-900">Expte: ${p.expte || 'S/N'}</strong>
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">${p.estado || 'Pendiente'}</span>
-              ${p.area_derivada ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">${p.area_derivada}</span>` : ''}
+              ${areaFormateada ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">${areaFormateada}</span>` : ''}
             </div>
             <p class="text-sm text-slate-800 font-medium mt-1">${p.objeto || '<span class="italic text-slate-400 font-normal">Sin objeto</span>'}</p>
             ${p.solicitantes ? `<p class="text-xs text-slate-600 mt-0.5">Solicitantes: <b>${p.solicitantes}</b></p>` : ''}
@@ -194,7 +206,7 @@
           $("fecha_ingreso").value = p.fecha_ingreso || "";
           $("primer_vencimiento").value = p.primer_vencimiento || "";
           $("vencimiento_prorroga").value = p.vencimiento_prorroga || "";
-          $("area_derivada").value = p.area_derivada || "";
+          $("area_derivada").value = formatArea(p.area_derivada);
           $("estado").value = p.estado || "Pendiente";
           $("fecha_respuesta").value = p.fecha_respuesta || "";
           $("observaciones").value = p.observaciones || "";
@@ -223,7 +235,7 @@
         fecha_ingreso: $("fecha_ingreso").value,
         primer_vencimiento: $("primer_vencimiento").value,
         vencimiento_prorroga: $("vencimiento_prorroga").value,
-        area_derivada: $("area_derivada").value.trim(),
+        area_derivada: formatArea($("area_derivada").value),
         estado: $("estado").value,
         fecha_respuesta: $("fecha_respuesta").value,
         observaciones: $("observaciones").value.trim()

@@ -56,7 +56,7 @@
         </svg>
         <div>
           <p class="mb-0.5 text-sm font-bold tracking-wide" style="color: rgb(12, 45, 77);">Ministerio de Gobierno · Provincia de Río Negro</p>
-          <h1 class="serif font-bold leading-tight" style="color: rgb(12, 45, 77); font-size: 28px;">Agenda de Pedidos de Informe</h1>
+          <h1 class="serif font-bold leading-tight" style="color: rgb(12, 45, 77); font-size: 28px;">Pedidos de Informe</h1>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -95,6 +95,7 @@
             <h2 class="mt-0.5 text-xl font-bold text-slate-900">Listado de Pedidos de Informe</h2>
           </div>
           <div class="flex items-center gap-2">
+            <span id="visible-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">0 visibles</span>
             <button id="btn-word" type="button" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition">
               <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word
             </button>
@@ -104,18 +105,38 @@
           </div>
         </div>
 
-        <!-- FILTROS -->
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-          <input id="filter-search" class="field sm:col-span-2" type="search" placeholder="Buscar por N° Expte, Objeto, Solicitantes u Observaciones...">
-          <select id="filter-area" class="field">
-            <option value="">Todas las áreas</option>
-          </select>
-          <select id="filter-estado" class="field">
-            <option value="">Todos los estados</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="Por finalizar">Por finalizar</option>
-            <option value="Respondido">Respondido</option>
-          </select>
+        <!-- BUSCADOR Y FILTRO POR ÁREA -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 items-end">
+          <div class="sm:col-span-5">
+            <label for="filter-search" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Buscador general</label>
+            <input id="filter-search" class="field" type="search" placeholder="N° Expte, Objeto, Solicitantes...">
+          </div>
+          <div class="sm:col-span-3">
+            <label for="filter-area" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Filtrar por Área</label>
+            <select id="filter-area" class="field">
+              <option value="">Todas las áreas</option>
+              <option value="igpj">IGPJ</option>
+              <option value="registro civil">Registro Civil</option>
+              <option value="rpi">RPI</option>
+              <option value="codeci">CODECI</option>
+              <option value="gobierno">Gobierno</option>
+              <option value="legales">Legales</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="filter-estado" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Estado</label>
+            <select id="filter-estado" class="field">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Por finalizar">Por finalizar</option>
+              <option value="Respondido">Respondido</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <button id="btn-clear-filters" type="button" class="w-full py-2.5 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition">
+              Limpiar
+            </button>
+          </div>
         </div>
 
         <!-- TABLA -->
@@ -192,6 +213,16 @@
       return `${Number(p[2])}/${Number(p[1])}/${p[0]}`;
     };
 
+    const SIGLAS_AREA = new Set(["igpj", "rpi", "codeci"]);
+    const formatArea = str => {
+      if (!str) return "";
+      return str.trim().split(/\s+/).map(w => {
+        const low = w.toLowerCase();
+        if (SIGLAS_AREA.has(low)) return low.toUpperCase();
+        return low.charAt(0).toUpperCase() + low.slice(1);
+      }).join(" ");
+    };
+
     const getVencimientoVigente = r => r.vencimiento_prorroga || r.primer_vencimiento || "";
 
     const monthFormat = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" });
@@ -203,10 +234,14 @@
     let selectedDate = iso(today);
 
     const coloresArea = {
-      "Legales": { bg: "#e0e7ff", text: "#3730a3", bar: "#4f46e5" },
-      "Gobierno": { bg: "#dcfce7", text: "#166534", bar: "#16a34a" }
+      "igpj": { bg: "#e0f2fe", text: "#0369a1", bar: "#0284c7" },
+      "registro civil": { bg: "#ccfbf1", text: "#0f766e", bar: "#14b8a6" },
+      "rpi": { bg: "#ffedd5", text: "#c2410c", bar: "#ea580c" },
+      "codeci": { bg: "#fef3c7", text: "#92400e", bar: "#d97706" },
+      "gobierno": { bg: "#dcfce7", text: "#166534", bar: "#16a34a" },
+      "legales": { bg: "#e0e7ff", text: "#3730a3", bar: "#4f46e5" }
     };
-    const getAreaStyle = area => coloresArea[area] || { bg: "#f1f5f9", text: "#334155", bar: "#0284c7" };
+    const getAreaStyle = area => coloresArea[(area || "").toLowerCase().trim()] || { bg: "#f1f5f9", text: "#334155", bar: "#0284c7" };
 
     const getEstadoBadge = est => {
       if (est === "Por finalizar") return `<span class="badge bg-amber-100 text-amber-800 border border-amber-300">Por finalizar</span>`;
@@ -218,34 +253,19 @@
       const { data, error } = await supabaseClient.from('pedidos_informe').select('*');
       if (!error && data) {
         registros = data;
-        poblarFiltroAreas();
         renderAll();
       }
     }
 
-    function poblarFiltroAreas() {
-      const select = $("filter-area");
-      const actual = select.value;
-      const areas = [...new Set(registros.map(r => r.area_derivada).filter(Boolean))].sort();
-      select.innerHTML = '<option value="">Todas las áreas</option>';
-      areas.forEach(a => {
-        const opt = document.createElement("option");
-        opt.value = a;
-        opt.textContent = a;
-        select.appendChild(opt);
-      });
-      select.value = areas.includes(actual) ? actual : "";
-    }
-
     function getFiltrados() {
       const q = $("filter-search").value.trim().toLowerCase();
-      const area = $("filter-area").value;
+      const area = $("filter-area").value.trim().toLowerCase();
       const estado = $("filter-estado").value;
 
       return registros.filter(r => {
-        const textoBuscable = [r.expte, r.objeto, r.solicitantes, r.observaciones].join(" ").toLowerCase();
+        const textoBuscable = [r.expte, r.objeto, r.solicitantes, r.area_derivada, r.observaciones].join(" ").toLowerCase();
         const matchText = !q || textoBuscable.includes(q);
-        const matchArea = !area || r.area_derivada === area;
+        const matchArea = !area || (r.area_derivada || "").toLowerCase().includes(area);
         const matchEstado = !estado || (r.estado || "Pendiente") === estado;
         return matchText && matchArea && matchEstado;
       }).sort((a, b) => {
@@ -275,6 +295,7 @@
       const tbody = $("tabla-pedidos");
       const lista = getFiltrados();
       tbody.innerHTML = "";
+      $("visible-count").textContent = `${lista.length} visibles`;
       $("empty-msg").classList.toggle("hidden", lista.length > 0);
 
       const hoyStr = iso(new Date());
@@ -295,8 +316,9 @@
           ? "text-rose-700 font-bold"
           : "text-indigo-700 font-bold";
 
-        const areaHtml = r.area_derivada
-          ? `<span class="badge" style="background:${getAreaStyle(r.area_derivada).bg};color:${getAreaStyle(r.area_derivada).text}">${r.area_derivada}</span>`
+        const areaFormateada = formatArea(r.area_derivada);
+        const areaHtml = areaFormateada
+          ? `<span class="badge" style="background:${getAreaStyle(r.area_derivada).bg};color:${getAreaStyle(r.area_derivada).text}">${areaFormateada}</span>`
           : `<span class="text-xs text-slate-400">—</span>`;
 
         tr.innerHTML = `
@@ -384,7 +406,7 @@
           </div>
           <p class="text-xs text-slate-700">${r.objeto || 'Sin objeto'}</p>
           ${r.solicitantes ? `<p class="text-[11px] text-slate-600">Solicitantes: ${r.solicitantes}</p>` : ''}
-          <p class="text-[11px] font-semibold text-sky-800">Área: ${r.area_derivada || 'Sin derivar'}</p>
+          <p class="text-[11px] font-semibold text-sky-800">Área: ${formatArea(r.area_derivada) || 'Sin derivar'}</p>
         `;
         box.appendChild(div);
       });
@@ -401,7 +423,7 @@
           <td>${formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso)}</td>
           <td>${formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento)}</td>
           <td>${formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga)}</td>
-          <td>${r.area_derivada || ''}</td>
+          <td>${formatArea(r.area_derivada)}</td>
           <td>${r.estado || ''}</td>
           <td>${formatFechaArg(r.fecha_respuesta) === '—' ? '' : formatFechaArg(r.fecha_respuesta)}</td>
           <td>${r.observaciones || ''}</td>
@@ -464,7 +486,7 @@
         formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso),
         formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento),
         formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga),
-        r.area_derivada || '',
+        formatArea(r.area_derivada),
         r.estado || '',
         formatFechaArg(r.fecha_respuesta) === '—' ? '' : formatFechaArg(r.fecha_respuesta),
         r.observaciones || ''
@@ -496,6 +518,12 @@
       $("filter-search").addEventListener("input", renderTabla);
       $("filter-area").addEventListener("change", renderTabla);
       $("filter-estado").addEventListener("change", renderTabla);
+      $("btn-clear-filters").onclick = () => {
+        $("filter-search").value = "";
+        $("filter-area").value = "";
+        $("filter-estado").value = "";
+        renderTabla();
+      };
       $("prev-month").onclick = () => { activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() - 1, 1); renderCalendario(); };
       $("next-month").onclick = () => { activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 1); renderCalendario(); };
       $("today-btn").onclick = () => {
