@@ -15,7 +15,7 @@
     .field{width:100%;border:1px solid #bccbd4;border-radius:10px;padding:9px 12px;background:#fff;color:var(--ink);font:inherit;font-size:14px}
     .field:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,116,167,.13);outline:0}
     .calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-    .day{min-height:68px;border:1px solid #e1e8ec;border-radius:10px;background:#fff;padding:6px;text-align:left;transition:.18s}
+    .day{min-height:66px;border:1px solid #e1e8ec;border-radius:10px;background:#fff;padding:6px;text-align:left;transition:.18s}
     .day:hover{border-color:#4995bd;background:#f0f8fb}.day.muted{opacity:.36}.day.selected{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:#e8f4f9}
     .day-bar{height:4px;border-radius:99px;margin-top:3px}
     .badge{display:inline-flex;align-items:center;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
@@ -31,7 +31,7 @@
 <body>
 
   <header class="masthead px-4 py-6 sm:px-7 sm:py-8">
-    <div class="relative z-10 mx-auto max-w-7xl flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="relative z-10 mx-auto max-w-[1440px] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-4">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" class="h-14 w-auto rounded-lg shadow-sm">
           <rect width="100" height="100" fill="#000000"/>
@@ -66,7 +66,7 @@
     </div>
   </header>
 
-  <main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-7 sm:py-8 space-y-6">
+  <main class="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-7 sm:py-8 space-y-6">
 
     <!-- TARJETAS RESUMEN -->
     <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -85,7 +85,7 @@
     </section>
 
     <!-- BLOQUE PRINCIPAL: TABLA DE PEDIDOS + CALENDARIO -->
-    <div class="grid items-start gap-6 xl:grid-cols-[1.32fr_.68fr]">
+    <div class="grid items-start gap-6 xl:grid-cols-[1.45fr_.55fr]">
 
       <!-- TABLA DE EXPEDIENTES -->
       <section class="card p-4 sm:p-6 space-y-4">
@@ -106,7 +106,7 @@
 
         <!-- FILTROS -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-          <input id="filter-search" class="field sm:col-span-2" type="search" placeholder="Buscar por N° Expte u Objeto...">
+          <input id="filter-search" class="field sm:col-span-2" type="search" placeholder="Buscar por N° Expte, Objeto, Solicitantes u Observaciones...">
           <select id="filter-area" class="field">
             <option value="">Todas las áreas</option>
           </select>
@@ -120,16 +120,19 @@
 
         <!-- TABLA -->
         <div class="overflow-x-auto rounded-xl border border-slate-200">
-          <table class="w-full text-left border-collapse text-sm">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                <th class="py-3 px-3 font-bold">N° EXPTE</th>
-                <th class="py-3 px-3 font-bold">Objeto</th>
-                <th class="py-3 px-3 font-bold">Fecha ingreso</th>
-                <th class="py-3 px-3 font-bold">1° Vencimiento</th>
-                <th class="py-3 px-3 font-bold">Venc. prórroga</th>
-                <th class="py-3 px-3 font-bold">Área derivada</th>
-                <th class="py-3 px-3 font-bold">Estado</th>
+              <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">N° EXPTE</th>
+                <th class="py-3 px-2.5 font-bold min-w-[180px]">Objeto</th>
+                <th class="py-3 px-2.5 font-bold min-w-[140px]">Solicitantes</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha ingreso</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">1er vencimiento</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Venc. prórroga</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Área</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Estado</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha respuesta</th>
+                <th class="py-3 px-2.5 font-bold min-w-[180px]">Observaciones</th>
               </tr>
             </thead>
             <tbody id="tabla-pedidos" class="divide-y divide-slate-200 bg-white"></tbody>
@@ -139,11 +142,11 @@
       </section>
 
       <!-- CALENDARIO DE VENCIMIENTOS -->
-      <aside class="card p-4 sm:p-6 space-y-4">
+      <aside class="card p-4 sm:p-5 space-y-4">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-widest text-sky-700">Control de Plazos</p>
-            <h2 class="mt-0.5 text-xl font-bold text-slate-900">Vencimientos</h2>
+            <h2 class="mt-0.5 text-lg font-bold text-slate-900">Vencimientos</h2>
           </div>
           <div class="flex gap-1">
             <button id="prev-month" class="rounded-lg border border-slate-300 bg-white p-1.5 hover:bg-slate-50" type="button"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
@@ -152,7 +155,7 @@
         </div>
 
         <div class="flex items-center justify-between">
-          <h3 id="calendar-title" class="serif text-lg font-bold capitalize text-slate-800"></h3>
+          <h3 id="calendar-title" class="serif text-base font-bold capitalize text-slate-800"></h3>
           <button id="today-btn" class="rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" style="background: var(--navy);" type="button">Hoy</button>
         </div>
 
@@ -171,7 +174,7 @@
   </main>
 
   <footer class="mt-8 px-4 py-5" style="background: var(--color-1);">
-    <p class="mx-auto max-w-7xl text-center text-xs font-bold" style="color: rgb(12, 45, 77);">Ministerio de Gobierno · Provincia de Río Negro</p>
+    <p class="mx-auto max-w-[1440px] text-center text-xs font-bold" style="color: rgb(12, 45, 77);">Ministerio de Gobierno · Provincia de Río Negro</p>
   </footer>
 
   <script>
@@ -189,7 +192,6 @@
       return `${Number(p[2])}/${Number(p[1])}/${p[0]}`;
     };
 
-    // Fecha de vencimiento vigente: prioriza prórroga si existe, sino 1° vencimiento
     const getVencimientoVigente = r => r.vencimiento_prorroga || r.primer_vencimiento || "";
 
     const monthFormat = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" });
@@ -241,7 +243,8 @@
       const estado = $("filter-estado").value;
 
       return registros.filter(r => {
-        const matchText = !q || (r.expte || "").toLowerCase().includes(q) || (r.objeto || "").toLowerCase().includes(q);
+        const textoBuscable = [r.expte, r.objeto, r.solicitantes, r.observaciones].join(" ").toLowerCase();
+        const matchText = !q || textoBuscable.includes(q);
         const matchArea = !area || r.area_derivada === area;
         const matchEstado = !estado || (r.estado || "Pendiente") === estado;
         return matchText && matchArea && matchEstado;
@@ -262,7 +265,8 @@
       const limite15 = iso(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000));
       const alertas = registros.filter(r => {
         const v = getVencimientoVigente(r);
-        return v && r.estado !== "Respondido" && v <= limite15;
+        const yaRespondido = r.estado === "Respondido" || Boolean(r.fecha_respuesta);
+        return v && !yaRespondido && v <= limite15;
       });
       $("stat-alerta").textContent = alertas.length;
     }
@@ -277,10 +281,11 @@
 
       lista.forEach(r => {
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50/80 transition";
+        tr.className = "hover:bg-slate-50/80 transition align-top";
 
         const vencVigente = getVencimientoVigente(r);
-        const vencido = vencVigente && vencVigente < hoyStr && r.estado !== "Respondido";
+        const yaRespondido = r.estado === "Respondido" || Boolean(r.fecha_respuesta);
+        const vencido = vencVigente && vencVigente < hoyStr && !yaRespondido;
 
         const primerVencClass = (!r.vencimiento_prorroga && vencido)
           ? "text-rose-700 font-bold"
@@ -295,13 +300,16 @@
           : `<span class="text-xs text-slate-400">—</span>`;
 
         tr.innerHTML = `
-          <td class="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">${r.expte || '<span class="text-slate-400 font-normal">S/N</span>'}</td>
-          <td class="py-3 px-3 text-slate-800 preserve-format">${r.objeto || '<span class="text-slate-400 italic">Sin objeto cargado</span>'}</td>
-          <td class="py-3 px-3 whitespace-nowrap text-slate-600">${formatFechaArg(r.fecha_ingreso)}</td>
-          <td class="py-3 px-3 whitespace-nowrap ${primerVencClass}">${formatFechaArg(r.primer_vencimiento)}${(!r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
-          <td class="py-3 px-3 whitespace-nowrap ${r.vencimiento_prorroga ? prorrogaClass : 'text-slate-400'}">${formatFechaArg(r.vencimiento_prorroga)}${(r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
-          <td class="py-3 px-3 whitespace-nowrap">${areaHtml}</td>
-          <td class="py-3 px-3 whitespace-nowrap">${getEstadoBadge(r.estado)}</td>
+          <td class="py-3 px-2.5 font-bold text-slate-900 whitespace-nowrap">${r.expte || '<span class="text-slate-400 font-normal">S/N</span>'}</td>
+          <td class="py-3 px-2.5 text-slate-800 preserve-format">${r.objeto || '<span class="text-slate-400 italic">Sin objeto</span>'}</td>
+          <td class="py-3 px-2.5 text-slate-700 preserve-format">${r.solicitantes || '<span class="text-slate-400">—</span>'}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap text-slate-600">${formatFechaArg(r.fecha_ingreso)}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap ${primerVencClass}">${formatFechaArg(r.primer_vencimiento)}${(!r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap ${r.vencimiento_prorroga ? prorrogaClass : 'text-slate-400'}">${formatFechaArg(r.vencimiento_prorroga)}${(r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap">${areaHtml}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap">${getEstadoBadge(r.estado)}</td>
+          <td class="py-3 px-2.5 whitespace-nowrap text-emerald-800 font-medium">${formatFechaArg(r.fecha_respuesta)}</td>
+          <td class="py-3 px-2.5 text-slate-600 preserve-format text-xs">${r.observaciones || '<span class="text-slate-400">—</span>'}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -365,7 +373,7 @@
         const esProrroga = r.vencimiento_prorroga === selectedDate;
         const tipoTag = esProrroga
           ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">Venc. Prórroga</span>`
-          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">1° Vencimiento</span>`;
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">1er Vencimiento</span>`;
 
         const div = document.createElement("div");
         div.className = "rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1";
@@ -375,6 +383,7 @@
             <div class="flex items-center gap-1">${tipoTag}${getEstadoBadge(r.estado)}</div>
           </div>
           <p class="text-xs text-slate-700">${r.objeto || 'Sin objeto'}</p>
+          ${r.solicitantes ? `<p class="text-[11px] text-slate-600">Solicitantes: ${r.solicitantes}</p>` : ''}
           <p class="text-[11px] font-semibold text-sky-800">Área: ${r.area_derivada || 'Sin derivar'}</p>
         `;
         box.appendChild(div);
@@ -388,22 +397,26 @@
         <tr>
           <td>${r.expte || ''}</td>
           <td>${r.objeto || ''}</td>
+          <td>${r.solicitantes || ''}</td>
           <td>${formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso)}</td>
           <td>${formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento)}</td>
           <td>${formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga)}</td>
           <td>${r.area_derivada || ''}</td>
           <td>${r.estado || ''}</td>
+          <td>${formatFechaArg(r.fecha_respuesta) === '—' ? '' : formatFechaArg(r.fecha_respuesta)}</td>
+          <td>${r.observaciones || ''}</td>
         </tr>
       `).join("");
 
       const html = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><meta charset='utf-8'><style>
-          body { font-family: Calibri, Arial, sans-serif; font-size: 10pt; }
+          @page { size: landscape; margin: 1.5cm; }
+          body { font-family: Calibri, Arial, sans-serif; font-size: 9pt; }
           h2 { color: #0c2d4d; }
           table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #000; padding: 6px 8px; text-align: center; }
-          th { background-color: #e2e8f0; font-weight: bold; }
+          th, td { border: 1px solid #000; padding: 5px 6px; text-align: left; vertical-align: top; }
+          th { background-color: #e2e8f0; font-weight: bold; text-align: center; }
         </style></head>
         <body>
           <h2>Ministerio de Gobierno · Pedidos de Informe</h2>
@@ -412,11 +425,14 @@
               <tr>
                 <th>N° EXPTE</th>
                 <th>Objeto</th>
-                <th>Fecha de ingreso</th>
-                <th>Primer vencimiento</th>
+                <th>Solicitantes</th>
+                <th>Fecha ingreso</th>
+                <th>1er vencimiento</th>
                 <th>Vencimiento de prórroga</th>
-                <th>Área derivada</th>
+                <th>Área</th>
                 <th>Estado</th>
+                <th>Fecha de respuesta</th>
+                <th>Observaciones</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -444,20 +460,24 @@
       const body = getFiltrados().map(r => [
         r.expte || '',
         r.objeto || '',
+        r.solicitantes || '',
         formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso),
         formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento),
         formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga),
         r.area_derivada || '',
-        r.estado || ''
+        r.estado || '',
+        formatFechaArg(r.fecha_respuesta) === '—' ? '' : formatFechaArg(r.fecha_respuesta),
+        r.observaciones || ''
       ]);
 
       doc.autoTable({
         startY: 26,
-        head: [['N° EXPTE', 'Objeto', 'Fecha ingreso', '1° Vencimiento', 'Venc. prórroga', 'Área derivada', 'Estado']],
+        margin: { left: 8, right: 8 },
+        head: [['N° EXPTE', 'Objeto', 'Solicitantes', 'Ingreso', '1er Venc.', 'Prórroga', 'Área', 'Estado', 'Respuesta', 'Observaciones']],
         body,
         theme: 'grid',
-        headStyles: { fillColor: [12, 45, 77], textColor: [255, 255, 255], fontSize: 8.5 },
-        bodyStyles: { fontSize: 8.5, textColor: [19, 38, 59] }
+        headStyles: { fillColor: [12, 45, 77], textColor: [255, 255, 255], fontSize: 7.5 },
+        bodyStyles: { fontSize: 7.5, textColor: [19, 38, 59], cellPadding: 2 }
       });
 
       doc.save(`Pedidos_Informe_${iso(new Date())}.pdf`);

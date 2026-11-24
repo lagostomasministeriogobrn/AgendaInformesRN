@@ -7,6 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .preserve-format { white-space: pre-wrap; word-break: break-word; }
+  </style>
 </head>
 <body class="bg-slate-100 font-['DM_Sans'] text-slate-800 p-4 sm:p-8">
 
@@ -42,8 +45,35 @@
             <label class="block text-xs font-bold text-slate-600 mb-1">N° EXPTE</label>
             <input id="expte" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: 883/2026">
           </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Objeto</label>
+            <input id="objeto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Tierras fiscales a extranjeros">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Solicitantes</label>
+          <input id="solicitantes" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Legisladores / Bloque...">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Área derivada</label>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha ingreso</label>
+            <input id="fecha_ingreso" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">1er vencimiento</label>
+            <input id="primer_vencimiento" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Vencimiento de prórroga</label>
+            <input id="vencimiento_prorroga" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Área</label>
             <input id="area_derivada" list="areas-sugeridas" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Legales, Gobierno...">
             <datalist id="areas-sugeridas">
               <option value="Legales">
@@ -61,26 +91,15 @@
               <option value="Respondido">Respondido</option>
             </select>
           </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha de ingreso</label>
-            <input id="fecha_ingreso" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Primer vencimiento</label>
-            <input id="primer_vencimiento" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Vencimiento de prórroga</label>
-            <input id="vencimiento_prorroga" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha de respuesta</label>
+            <input id="fecha_respuesta" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Objeto</label>
-          <input id="objeto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Tierras fiscales a extranjeros">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Observaciones</label>
+          <textarea id="observaciones" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm min-h-[90px] preserve-format" placeholder="Notas adicionales, número de nota de remisión, etc."></textarea>
         </div>
 
         <div class="flex items-center gap-3 pt-2">
@@ -151,12 +170,15 @@
               <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">${p.estado || 'Pendiente'}</span>
               ${p.area_derivada ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">${p.area_derivada}</span>` : ''}
             </div>
-            <p class="text-sm text-slate-700 mt-1">${p.objeto || '<span class="italic text-slate-400">Sin objeto</span>'}</p>
+            <p class="text-sm text-slate-800 font-medium mt-1">${p.objeto || '<span class="italic text-slate-400 font-normal">Sin objeto</span>'}</p>
+            ${p.solicitantes ? `<p class="text-xs text-slate-600 mt-0.5">Solicitantes: <b>${p.solicitantes}</b></p>` : ''}
             <p class="text-xs text-slate-500 mt-1">
               Ingreso: <b>${formatFechaArg(p.fecha_ingreso)}</b> · 
-              1° Venc.: <b>${formatFechaArg(p.primer_vencimiento)}</b> · 
-              Prórroga: <b>${formatFechaArg(p.vencimiento_prorroga)}</b>
+              1er Venc.: <b>${formatFechaArg(p.primer_vencimiento)}</b> · 
+              Prórroga: <b>${formatFechaArg(p.vencimiento_prorroga)}</b> · 
+              Respuesta: <b>${formatFechaArg(p.fecha_respuesta)}</b>
             </p>
+            ${p.observaciones ? `<p class="text-xs text-slate-600 preserve-format mt-1.5 bg-slate-50 p-2 rounded-lg border border-slate-100">${p.observaciones}</p>` : ''}
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button class="btn-edit bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-sky-200">Editar</button>
@@ -168,11 +190,14 @@
           $("pedido-id").value = p.id;
           $("expte").value = p.expte || "";
           $("objeto").value = p.objeto || "";
+          $("solicitantes").value = p.solicitantes || "";
           $("fecha_ingreso").value = p.fecha_ingreso || "";
           $("primer_vencimiento").value = p.primer_vencimiento || "";
           $("vencimiento_prorroga").value = p.vencimiento_prorroga || "";
           $("area_derivada").value = p.area_derivada || "";
           $("estado").value = p.estado || "Pendiente";
+          $("fecha_respuesta").value = p.fecha_respuesta || "";
+          $("observaciones").value = p.observaciones || "";
           $("cancel-edit").classList.remove("hidden");
           window.scrollTo({ top: 0, behavior: 'smooth' });
         };
@@ -194,11 +219,14 @@
         id: $("pedido-id").value || String(Date.now()),
         expte: $("expte").value.trim(),
         objeto: $("objeto").value.trim(),
+        solicitantes: $("solicitantes").value.trim(),
         fecha_ingreso: $("fecha_ingreso").value,
         primer_vencimiento: $("primer_vencimiento").value,
         vencimiento_prorroga: $("vencimiento_prorroga").value,
         area_derivada: $("area_derivada").value.trim(),
-        estado: $("estado").value
+        estado: $("estado").value,
+        fecha_respuesta: $("fecha_respuesta").value,
+        observaciones: $("observaciones").value.trim()
       };
       await supabaseClient.from('pedidos_informe').upsert(item);
       $("pedido-form").reset();
