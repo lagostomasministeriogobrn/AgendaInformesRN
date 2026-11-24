@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pedidos de Informe · Ministerio de Gobierno</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root{--ink:#13263b;--navy:#0c2d4d;--blue:#1774a7;--sky:#e8f2f7;--paper:#f5f7f8;--line:#d6e0e6;--muted:#587084;--color-1:#76E35B}
     *{box-sizing:border-box} body{margin:0;font-family:"DM Sans",sans-serif;color:var(--ink);background:var(--paper)}
@@ -21,6 +21,55 @@
     .badge{display:inline-flex;align-items:center;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
     .preserve-format{white-space:pre-wrap;word-break:break-word}
     @media(max-width:640px){.day{min-height:52px;padding:4px}}
+
+    @keyframes latidoRojo {
+      0%, 100% {
+        transform: scale(1);
+        background-color: #dc2626;
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+      }
+      50% {
+        transform: scale(1.012);
+        background-color: #b91c1c;
+        box-shadow: 0 0 22px 6px rgba(220, 38, 38, 0.45);
+      }
+    }
+    .alerta-latiendo {
+      animation: latidoRojo 1.4s infinite ease-in-out;
+    }
+
+    /* TRANSICIÓN DE ENTRADA (BIENVENIDO) */
+    #welcome-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: radial-gradient(circle at top right, #164673 0%, #0c2d4d 65%, #071d33 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.65s;
+    }
+    #welcome-screen.fade-out {
+      opacity: 0;
+      transform: translateY(-22px);
+      visibility: hidden;
+      pointer-events: none;
+    }
+    @keyframes subirSuave {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes cargarBarra {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+    .welcome-anim-1 { animation: subirSuave 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .welcome-anim-2 { opacity: 0; animation: subirSuave 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards; }
+    .welcome-anim-3 { opacity: 0; animation: subirSuave 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards; }
+    .welcome-bar-fill { animation: cargarBarra 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -29,6 +78,43 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+
+  <!-- PANTALLA DE BIENVENIDA -->
+  <div id="welcome-screen" title="Hacé clic para ingresar">
+    <div class="welcome-anim-1 mb-5">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" class="h-16 w-auto rounded-xl shadow-lg mx-auto border border-white/15">
+        <rect width="100" height="100" fill="#000000"/>
+        <rect x="100" width="140" height="100" fill="#76E35B"/>
+        <text x="123" y="62" fill="#FFFFFF" font-family="Arial, sans-serif" font-weight="bold" font-size="52">RN</text>
+        <g transform="translate(50,50)">
+          <circle cx="0" cy="0" r="34" fill="none" stroke="#000" stroke-width="1"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(0)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(27.69)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(55.38)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(83.07)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(110.76)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(138.45)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(166.14)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(193.83)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(221.52)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(249.21)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(276.90)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(304.59)"/>
+          <path d="M0,-32 L1.5,-27 L6,-28 L3,-24 L7,-21 L2,-21 L0,-16 L-2,-21 L-7,-21 L-3,-24 L-6,-28 L-1.5,-27 Z" fill="#FFFFFF" transform="rotate(332.28)"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="welcome-anim-2 space-y-1.5">
+      <p class="text-xs sm:text-sm font-bold uppercase tracking-[0.22em]" style="color: #76E35B;">Ministerio de Gobierno · Río Negro</p>
+      <h2 class="serif text-4xl sm:text-5xl font-bold text-white tracking-tight">Bienvenido</h2>
+      <p class="text-xs sm:text-sm text-slate-300 pt-1">Sistema de Seguimiento de Pedidos de Informe</p>
+    </div>
+
+    <div class="welcome-anim-3 mt-7 w-48 sm:w-56 h-1.5 rounded-full bg-white/15 overflow-hidden">
+      <div class="welcome-bar-fill h-full rounded-full" style="background: #76E35B;"></div>
+    </div>
+  </div>
 
   <header class="masthead px-4 py-6 sm:px-7 sm:py-8">
     <div class="relative z-10 mx-auto max-w-[1440px] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -67,6 +153,19 @@
   </header>
 
   <main class="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-7 sm:py-8 space-y-6">
+
+    <!-- CARTEL DE ALERTA LATIENDO EN ROJO -->
+    <div id="banner-alerta" class="hidden alerta-latiendo rounded-2xl border-2 border-red-300 bg-red-600 px-5 py-4 text-white shadow-xl flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+          <i data-lucide="alert-triangle" class="h-6 w-6 text-white"></i>
+        </div>
+        <p id="texto-alerta" class="text-sm sm:text-base font-extrabold tracking-wide uppercase"></p>
+      </div>
+      <button id="cerrar-alerta" type="button" aria-label="Cerrar alerta" class="rounded-lg bg-white/15 hover:bg-white/25 p-1.5 text-white transition shrink-0">
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
 
     <!-- TARJETAS RESUMEN -->
     <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -300,7 +399,19 @@
         const yaRespondido = r.estado === "Respondido" || Boolean(r.fecha_respuesta);
         return v && !yaRespondido && v <= limite15;
       });
-      $("stat-alerta").textContent = alertas.length;
+
+      const cant = alertas.length;
+      $("stat-alerta").textContent = cant;
+
+      const banner = $("banner-alerta");
+      const texto = $("texto-alerta");
+      if (cant > 0) {
+        const palabraInforme = cant === 1 ? "INFORME PRÓXIMO" : "INFORMES PRÓXIMOS";
+        texto.innerHTML = `ATENCIÓN! ⚠️ <span class="underline decoration-2 underline-offset-4">${cant} ${palabraInforme} A VENCER!</span>`;
+        banner.classList.remove("hidden");
+      } else {
+        banner.classList.add("hidden");
+      }
     }
 
     function renderTabla() {
@@ -526,7 +637,14 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      // Cerrar pantalla de bienvenida automáticamente o al hacer clic
+      const welcome = $("welcome-screen");
+      const cerrarWelcome = () => welcome && welcome.classList.add("fade-out");
+      setTimeout(cerrarWelcome, 1650);
+      if (welcome) welcome.addEventListener("click", cerrarWelcome);
+
       cargarDatos();
+      $("cerrar-alerta").onclick = () => $("banner-alerta").classList.add("hidden");
       $("filter-search").addEventListener("input", renderTabla);
       $("filter-area").addEventListener("change", renderTabla);
       $("filter-estado").addEventListener("change", renderTabla);
