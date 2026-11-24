@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Carga · Pedidos de Informe</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-100 font-['DM_Sans'] text-slate-800 p-4 sm:p-8">
+
+  <!-- LOGIN -->
+  <div id="login-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h2 class="text-xl font-bold text-slate-900">Acceso Administrador</h2>
+      <p class="text-xs text-slate-500 mt-1 mb-4">Ingresá la clave para gestionar los Pedidos de Informe.</p>
+      <input id="pass-input" type="password" placeholder="Clave de acceso" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+      <button id="login-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition">Ingresar al Panel</button>
+      <p id="login-msg" class="text-xs text-red-600 mt-2 text-center hidden">Clave incorrecta.</p>
+    </div>
+  </div>
+
+  <!-- PANEL -->
+  <div id="admin-panel" class="max-w-4xl mx-auto space-y-6 hidden">
+    <header class="bg-slate-900 text-white p-6 rounded-2xl flex items-center justify-between shadow-md">
+      <div>
+        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Ministerio de Gobierno · Río Negro</span>
+        <h1 class="text-2xl font-bold mt-1">Gestión de Pedidos de Informe</h1>
+      </div>
+      <a href="index.html" target="_blank" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl border border-white/20 transition">Ver vista pública ↗</a>
+    </header>
+
+    <!-- FORMULARIO -->
+    <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold text-slate-900 mb-4">Cargar o editar Pedido de Informe</h2>
+      <form id="pedido-form" class="space-y-4">
+        <input id="pedido-id" type="hidden">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">N° EXPTE</label>
+            <input id="expte" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: 883/2026">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Vencimiento</label>
+            <input id="vencimiento" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Área derivada</label>
+            <input id="area_derivada" list="areas-sugeridas" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Legales, Gobierno...">
+            <datalist id="areas-sugeridas">
+              <option value="Legales">
+              <option value="Gobierno">
+              <option value="IGPJ">
+              <option value="Registro Civil">
+              <option value="RPI">
+            </datalist>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Objeto</label>
+            <input id="objeto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Tierras fiscales a extranjeros">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Estado</label>
+            <select id="estado" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white">
+              <option value="Pendiente">Pendiente</option>
+              <option value="Por finalizar">Por finalizar</option>
+              <option value="Respondido">Respondido</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition">Guardar Pedido</button>
+          <button id="cancel-edit" type="button" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-3 rounded-xl text-sm transition">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- LISTADO -->
+    <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold text-slate-900 mb-4">Pedidos cargados</h2>
+      <div id="lista-admin" class="divide-y divide-slate-100"></div>
+    </section>
+  </div>
+
+  <script>
+    const CLAVE_ADMIN = "rn2026";
+    const SUPABASE_URL = 'https://wyvxnzklfvhhzphubjik.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Y8F-G_AnbvTRT7Z46vNoBQ_2TioQnLq';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $ = id => document.getElementById(id);
+    let pedidos = [];
+
+    const formatFechaArg = v => {
+      if (!v) return "Sin vencimiento";
+      const p = v.split("-");
+      return p.length === 3 ? `${Number(p[2])}/${Number(p[1])}/${p[0]}` : v;
+    };
+
+    $("login-btn").onclick = () => {
+      if ($("pass-input").value === CLAVE_ADMIN) {
+        $("login-overlay").classList.add("hidden");
+        $("admin-panel").classList.remove("hidden");
+        cargar();
+      } else {
+        $("login-msg").classList.remove("hidden");
+      }
+    };
+
+    $("pass-input").addEventListener("keypress", e => {
+      if (e.key === "Enter") $("login-btn").click();
+    });
+
+    async function cargar() {
+      const { data } = await supabaseClient.from('pedidos_informe').select('*');
+      if (data) {
+        pedidos = data;
+        renderLista();
+      }
+    }
+
+    function renderLista() {
+      const box = $("lista-admin");
+      box.innerHTML = "";
+      pedidos.sort((a, b) => (a.vencimiento || "9999").localeCompare(b.vencimiento || "9999")).forEach(p => {
+        const div = document.createElement("div");
+        div.className = "py-3.5 flex items-start justify-between gap-4";
+        div.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <strong class="text-sm font-bold text-slate-900">Expte: ${p.expte || 'S/N'}</strong>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">${p.estado || 'Pendiente'}</span>
+              ${p.area_derivada ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">${p.area_derivada}</span>` : ''}
+            </div>
+            <p class="text-sm text-slate-700 mt-1">${p.objeto || '<span class="italic text-slate-400">Sin objeto</span>'}</p>
+            <p class="text-xs text-slate-500 mt-0.5">Vencimiento: ${formatFechaArg(p.vencimiento)}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="btn-edit bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-sky-200">Editar</button>
+            <button class="btn-del bg-red-100 text-red-800 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-200">Eliminar</button>
+          </div>
+        `;
+
+        div.querySelector(".btn-edit").onclick = () => {
+          $("pedido-id").value = p.id;
+          $("expte").value = p.expte || "";
+          $("objeto").value = p.objeto || "";
+          $("vencimiento").value = p.vencimiento || "";
+          $("area_derivada").value = p.area_derivada || "";
+          $("estado").value = p.estado || "Pendiente";
+          $("cancel-edit").classList.remove("hidden");
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        div.querySelector(".btn-del").onclick = async () => {
+          if (confirm("¿Eliminar este pedido de informe?")) {
+            await supabaseClient.from('pedidos_informe').delete().eq('id', p.id);
+            cargar();
+          }
+        };
+
+        box.appendChild(div);
+      });
+    }
+
+    $("pedido-form").onsubmit = async e => {
+      e.preventDefault();
+      const item = {
+        id: $("pedido-id").value || String(Date.now()),
+        expte: $("expte").value.trim(),
+        objeto: $("objeto").value.trim(),
+        vencimiento: $("vencimiento").value,
+        area_derivada: $("area_derivada").value.trim(),
+        estado: $("estado").value
+      };
+      await supabaseClient.from('pedidos_informe').upsert(item);
+      $("pedido-form").reset();
+      $("pedido-id").value = "";
+      $("cancel-edit").classList.add("hidden");
+      cargar();
+    };
+
+    $("cancel-edit").onclick = () => {
+      $("pedido-form").reset();
+      $("pedido-id").value = "";
+      $("cancel-edit").classList.add("hidden");
+    };
+  </script>
+</body>
+</html>
