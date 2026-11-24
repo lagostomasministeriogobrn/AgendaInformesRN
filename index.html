@@ -85,7 +85,7 @@
     </section>
 
     <!-- BLOQUE PRINCIPAL: TABLA DE PEDIDOS + CALENDARIO -->
-    <div class="grid items-start gap-6 xl:grid-cols-[1.25fr_.75fr]">
+    <div class="grid items-start gap-6 xl:grid-cols-[1.32fr_.68fr]">
 
       <!-- TABLA DE EXPEDIENTES -->
       <section class="card p-4 sm:p-6 space-y-4">
@@ -123,11 +123,13 @@
           <table class="w-full text-left border-collapse text-sm">
             <thead>
               <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                <th class="py-3 px-3.5 font-bold">N° EXPTE</th>
-                <th class="py-3 px-3.5 font-bold">Objeto</th>
-                <th class="py-3 px-3.5 font-bold">Vencimiento</th>
-                <th class="py-3 px-3.5 font-bold">Área derivada</th>
-                <th class="py-3 px-3.5 font-bold">Estado</th>
+                <th class="py-3 px-3 font-bold">N° EXPTE</th>
+                <th class="py-3 px-3 font-bold">Objeto</th>
+                <th class="py-3 px-3 font-bold">Fecha ingreso</th>
+                <th class="py-3 px-3 font-bold">1° Vencimiento</th>
+                <th class="py-3 px-3 font-bold">Venc. prórroga</th>
+                <th class="py-3 px-3 font-bold">Área derivada</th>
+                <th class="py-3 px-3 font-bold">Estado</th>
               </tr>
             </thead>
             <tbody id="tabla-pedidos" class="divide-y divide-slate-200 bg-white"></tbody>
@@ -187,6 +189,9 @@
       return `${Number(p[2])}/${Number(p[1])}/${p[0]}`;
     };
 
+    // Fecha de vencimiento vigente: prioriza prórroga si existe, sino 1° vencimiento
+    const getVencimientoVigente = r => r.vencimiento_prorroga || r.primer_vencimiento || "";
+
     const monthFormat = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" });
     const dayFormat = new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -241,10 +246,12 @@
         const matchEstado = !estado || (r.estado || "Pendiente") === estado;
         return matchText && matchArea && matchEstado;
       }).sort((a, b) => {
-        if (!a.vencimiento && !b.vencimiento) return 0;
-        if (!a.vencimiento) return 1;
-        if (!b.vencimiento) return -1;
-        return a.vencimiento.localeCompare(b.vencimiento);
+        const va = getVencimientoVigente(a);
+        const vb = getVencimientoVigente(b);
+        if (!va && !vb) return 0;
+        if (!va) return 1;
+        if (!vb) return -1;
+        return va.localeCompare(vb);
       });
     }
 
@@ -252,9 +259,11 @@
       $("stat-total").textContent = registros.length;
       $("stat-por-finalizar").textContent = registros.filter(r => r.estado === "Por finalizar").length;
 
-      const hoyStr = iso(new Date());
       const limite15 = iso(new Date(Date.now() + 15 * 24 * 60 * 60 * 1000));
-      const alertas = registros.filter(r => r.vencimiento && r.estado !== "Respondido" && r.vencimiento <= limite15);
+      const alertas = registros.filter(r => {
+        const v = getVencimientoVigente(r);
+        return v && r.estado !== "Respondido" && v <= limite15;
+      });
       $("stat-alerta").textContent = alertas.length;
     }
 
@@ -270,19 +279,29 @@
         const tr = document.createElement("tr");
         tr.className = "hover:bg-slate-50/80 transition";
 
-        const vencido = r.vencimiento && r.vencimiento < hoyStr && r.estado !== "Respondido";
-        const vencClass = vencido ? "text-rose-700 font-bold" : "text-slate-700 font-medium";
+        const vencVigente = getVencimientoVigente(r);
+        const vencido = vencVigente && vencVigente < hoyStr && r.estado !== "Respondido";
+
+        const primerVencClass = (!r.vencimiento_prorroga && vencido)
+          ? "text-rose-700 font-bold"
+          : (r.vencimiento_prorroga ? "text-slate-400 line-through" : "text-slate-700 font-medium");
+
+        const prorrogaClass = (r.vencimiento_prorroga && vencido)
+          ? "text-rose-700 font-bold"
+          : "text-indigo-700 font-bold";
 
         const areaHtml = r.area_derivada
           ? `<span class="badge" style="background:${getAreaStyle(r.area_derivada).bg};color:${getAreaStyle(r.area_derivada).text}">${r.area_derivada}</span>`
           : `<span class="text-xs text-slate-400">—</span>`;
 
         tr.innerHTML = `
-          <td class="py-3 px-3.5 font-bold text-slate-900 whitespace-nowrap">${r.expte || '<span class="text-slate-400 font-normal">S/N</span>'}</td>
-          <td class="py-3 px-3.5 text-slate-800 preserve-format">${r.objeto || '<span class="text-slate-400 italic">Sin objeto cargado</span>'}</td>
-          <td class="py-3 px-3.5 whitespace-nowrap ${vencClass}">${formatFechaArg(r.vencimiento)}${vencido ? ' ⚠️' : ''}</td>
-          <td class="py-3 px-3.5 whitespace-nowrap">${areaHtml}</td>
-          <td class="py-3 px-3.5 whitespace-nowrap">${getEstadoBadge(r.estado)}</td>
+          <td class="py-3 px-3 font-bold text-slate-900 whitespace-nowrap">${r.expte || '<span class="text-slate-400 font-normal">S/N</span>'}</td>
+          <td class="py-3 px-3 text-slate-800 preserve-format">${r.objeto || '<span class="text-slate-400 italic">Sin objeto cargado</span>'}</td>
+          <td class="py-3 px-3 whitespace-nowrap text-slate-600">${formatFechaArg(r.fecha_ingreso)}</td>
+          <td class="py-3 px-3 whitespace-nowrap ${primerVencClass}">${formatFechaArg(r.primer_vencimiento)}${(!r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
+          <td class="py-3 px-3 whitespace-nowrap ${r.vencimiento_prorroga ? prorrogaClass : 'text-slate-400'}">${formatFechaArg(r.vencimiento_prorroga)}${(r.vencimiento_prorroga && vencido) ? ' ⚠️' : ''}</td>
+          <td class="py-3 px-3 whitespace-nowrap">${areaHtml}</td>
+          <td class="py-3 px-3 whitespace-nowrap">${getEstadoBadge(r.estado)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -302,7 +321,7 @@
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const key = iso(d);
-        const delDia = registros.filter(r => r.vencimiento === key);
+        const delDia = registros.filter(r => r.primer_vencimiento === key || r.vencimiento_prorroga === key);
 
         const btn = document.createElement("button");
         btn.type = "button";
@@ -315,7 +334,7 @@
         delDia.forEach(item => {
           const bar = document.createElement("div");
           bar.className = "day-bar";
-          bar.style.backgroundColor = getAreaStyle(item.area_derivada).bar;
+          bar.style.backgroundColor = item.vencimiento_prorroga === key ? "#7c3aed" : getAreaStyle(item.area_derivada).bar;
           btn.appendChild(bar);
         });
 
@@ -334,7 +353,7 @@
     function renderDetalleDia() {
       $("selected-day-title").textContent = `Vencimientos · ${dayFormat.format(parseDate(selectedDate))}`;
       const box = $("selected-day-list");
-      const delDia = registros.filter(r => r.vencimiento === selectedDate);
+      const delDia = registros.filter(r => r.primer_vencimiento === selectedDate || r.vencimiento_prorroga === selectedDate);
       box.innerHTML = "";
 
       if (!delDia.length) {
@@ -343,12 +362,17 @@
       }
 
       delDia.forEach(r => {
+        const esProrroga = r.vencimiento_prorroga === selectedDate;
+        const tipoTag = esProrroga
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">Venc. Prórroga</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">1° Vencimiento</span>`;
+
         const div = document.createElement("div");
         div.className = "rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1";
         div.innerHTML = `
           <div class="flex items-center justify-between gap-2">
             <strong class="text-xs text-slate-900">Expte: ${r.expte || 'S/N'}</strong>
-            ${getEstadoBadge(r.estado)}
+            <div class="flex items-center gap-1">${tipoTag}${getEstadoBadge(r.estado)}</div>
           </div>
           <p class="text-xs text-slate-700">${r.objeto || 'Sin objeto'}</p>
           <p class="text-[11px] font-semibold text-sky-800">Área: ${r.area_derivada || 'Sin derivar'}</p>
@@ -364,7 +388,9 @@
         <tr>
           <td>${r.expte || ''}</td>
           <td>${r.objeto || ''}</td>
-          <td>${formatFechaArg(r.vencimiento) === '—' ? '' : formatFechaArg(r.vencimiento)}</td>
+          <td>${formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso)}</td>
+          <td>${formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento)}</td>
+          <td>${formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga)}</td>
           <td>${r.area_derivada || ''}</td>
           <td>${r.estado || ''}</td>
         </tr>
@@ -383,7 +409,15 @@
           <h2>Ministerio de Gobierno · Pedidos de Informe</h2>
           <table>
             <thead>
-              <tr><th>N° EXPTE</th><th>Objeto</th><th>Vencimiento</th><th>Área derivada</th><th>Estado</th></tr>
+              <tr>
+                <th>N° EXPTE</th>
+                <th>Objeto</th>
+                <th>Fecha de ingreso</th>
+                <th>Primer vencimiento</th>
+                <th>Vencimiento de prórroga</th>
+                <th>Área derivada</th>
+                <th>Estado</th>
+              </tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
@@ -410,18 +444,20 @@
       const body = getFiltrados().map(r => [
         r.expte || '',
         r.objeto || '',
-        formatFechaArg(r.vencimiento) === '—' ? '' : formatFechaArg(r.vencimiento),
+        formatFechaArg(r.fecha_ingreso) === '—' ? '' : formatFechaArg(r.fecha_ingreso),
+        formatFechaArg(r.primer_vencimiento) === '—' ? '' : formatFechaArg(r.primer_vencimiento),
+        formatFechaArg(r.vencimiento_prorroga) === '—' ? '' : formatFechaArg(r.vencimiento_prorroga),
         r.area_derivada || '',
         r.estado || ''
       ]);
 
       doc.autoTable({
         startY: 26,
-        head: [['N° EXPTE', 'Objeto', 'Vencimiento', 'Área derivada', 'Estado']],
+        head: [['N° EXPTE', 'Objeto', 'Fecha ingreso', '1° Vencimiento', 'Venc. prórroga', 'Área derivada', 'Estado']],
         body,
         theme: 'grid',
-        headStyles: { fillColor: [12, 45, 77], textColor: [255, 255, 255], fontSize: 9 },
-        bodyStyles: { fontSize: 9, textColor: [19, 38, 59] }
+        headStyles: { fillColor: [12, 45, 77], textColor: [255, 255, 255], fontSize: 8.5 },
+        bodyStyles: { fontSize: 8.5, textColor: [19, 38, 59] }
       });
 
       doc.save(`Pedidos_Informe_${iso(new Date())}.pdf`);

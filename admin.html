@@ -43,10 +43,6 @@
             <input id="expte" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: 883/2026">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Vencimiento</label>
-            <input id="vencimiento" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
-          </div>
-          <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Área derivada</label>
             <input id="area_derivada" list="areas-sugeridas" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Legales, Gobierno...">
             <datalist id="areas-sugeridas">
@@ -57,13 +53,6 @@
               <option value="RPI">
             </datalist>
           </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-600 mb-1">Objeto</label>
-            <input id="objeto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Tierras fiscales a extranjeros">
-          </div>
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Estado</label>
             <select id="estado" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white">
@@ -72,6 +61,26 @@
               <option value="Respondido">Respondido</option>
             </select>
           </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha de ingreso</label>
+            <input id="fecha_ingreso" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Primer vencimiento</label>
+            <input id="primer_vencimiento" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Vencimiento de prórroga</label>
+            <input id="vencimiento_prorroga" type="date" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Objeto</label>
+          <input id="objeto" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm" placeholder="Ej: Tierras fiscales a extranjeros">
         </div>
 
         <div class="flex items-center gap-3 pt-2">
@@ -98,7 +107,7 @@
     let pedidos = [];
 
     const formatFechaArg = v => {
-      if (!v) return "Sin vencimiento";
+      if (!v) return "—";
       const p = v.split("-");
       return p.length === 3 ? `${Number(p[2])}/${Number(p[1])}/${p[0]}` : v;
     };
@@ -128,7 +137,11 @@
     function renderLista() {
       const box = $("lista-admin");
       box.innerHTML = "";
-      pedidos.sort((a, b) => (a.vencimiento || "9999").localeCompare(b.vencimiento || "9999")).forEach(p => {
+      pedidos.sort((a, b) => {
+        const va = a.vencimiento_prorroga || a.primer_vencimiento || "9999";
+        const vb = b.vencimiento_prorroga || b.primer_vencimiento || "9999";
+        return va.localeCompare(vb);
+      }).forEach(p => {
         const div = document.createElement("div");
         div.className = "py-3.5 flex items-start justify-between gap-4";
         div.innerHTML = `
@@ -139,7 +152,11 @@
               ${p.area_derivada ? `<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">${p.area_derivada}</span>` : ''}
             </div>
             <p class="text-sm text-slate-700 mt-1">${p.objeto || '<span class="italic text-slate-400">Sin objeto</span>'}</p>
-            <p class="text-xs text-slate-500 mt-0.5">Vencimiento: ${formatFechaArg(p.vencimiento)}</p>
+            <p class="text-xs text-slate-500 mt-1">
+              Ingreso: <b>${formatFechaArg(p.fecha_ingreso)}</b> · 
+              1° Venc.: <b>${formatFechaArg(p.primer_vencimiento)}</b> · 
+              Prórroga: <b>${formatFechaArg(p.vencimiento_prorroga)}</b>
+            </p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button class="btn-edit bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-sky-200">Editar</button>
@@ -151,7 +168,9 @@
           $("pedido-id").value = p.id;
           $("expte").value = p.expte || "";
           $("objeto").value = p.objeto || "";
-          $("vencimiento").value = p.vencimiento || "";
+          $("fecha_ingreso").value = p.fecha_ingreso || "";
+          $("primer_vencimiento").value = p.primer_vencimiento || "";
+          $("vencimiento_prorroga").value = p.vencimiento_prorroga || "";
           $("area_derivada").value = p.area_derivada || "";
           $("estado").value = p.estado || "Pendiente";
           $("cancel-edit").classList.remove("hidden");
@@ -175,7 +194,9 @@
         id: $("pedido-id").value || String(Date.now()),
         expte: $("expte").value.trim(),
         objeto: $("objeto").value.trim(),
-        vencimiento: $("vencimiento").value,
+        fecha_ingreso: $("fecha_ingreso").value,
+        primer_vencimiento: $("primer_vencimiento").value,
+        vencimiento_prorroga: $("vencimiento_prorroga").value,
         area_derivada: $("area_derivada").value.trim(),
         estado: $("estado").value
       };
