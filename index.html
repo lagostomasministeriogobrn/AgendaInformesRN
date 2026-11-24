@@ -105,14 +105,14 @@
           </div>
         </div>
 
-        <!-- BUSCADOR Y FILTRO POR ÁREA -->
+        <!-- BUSCADOR Y FILTRO POR ÁREA DERIVADA -->
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 items-end">
           <div class="sm:col-span-5">
             <label for="filter-search" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Buscador general</label>
             <input id="filter-search" class="field" type="search" placeholder="N° Expte, Objeto, Solicitantes...">
           </div>
           <div class="sm:col-span-3">
-            <label for="filter-area" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Filtrar por Área</label>
+            <label for="filter-area" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Filtrar por Área derivada</label>
             <select id="filter-area" class="field">
               <option value="">Todas las áreas</option>
               <option value="igpj">IGPJ</option>
@@ -121,6 +121,11 @@
               <option value="codeci">CODECI</option>
               <option value="gobierno">Gobierno</option>
               <option value="legales">Legales</option>
+              <option value="secretaría de gobierno">Secretaría de Gobierno</option>
+              <option value="dirección de municipios">Dirección de Municipios</option>
+              <option value="comisiones de fomento">Comisiones de Fomento</option>
+              <option value="veteranos de malvinas">Veteranos de Malvinas</option>
+              <option value="escribanía de gobierno">Escribanía de Gobierno</option>
             </select>
           </div>
           <div class="sm:col-span-2">
@@ -150,7 +155,7 @@
                 <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha ingreso</th>
                 <th class="py-3 px-2.5 font-bold whitespace-nowrap">1er vencimiento</th>
                 <th class="py-3 px-2.5 font-bold whitespace-nowrap">Venc. prórroga</th>
-                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Área</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Área derivada</th>
                 <th class="py-3 px-2.5 font-bold whitespace-nowrap">Estado</th>
                 <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha respuesta</th>
                 <th class="py-3 px-2.5 font-bold min-w-[180px]">Observaciones</th>
@@ -214,11 +219,13 @@
     };
 
     const SIGLAS_AREA = new Set(["igpj", "rpi", "codeci"]);
+    const CONECTORES_AREA = new Set(["de", "del", "la", "las", "los", "y"]);
     const formatArea = str => {
       if (!str) return "";
-      return str.trim().split(/\s+/).map(w => {
+      return str.trim().split(/\s+/).map((w, idx) => {
         const low = w.toLowerCase();
         if (SIGLAS_AREA.has(low)) return low.toUpperCase();
+        if (idx > 0 && CONECTORES_AREA.has(low)) return low;
         return low.charAt(0).toUpperCase() + low.slice(1);
       }).join(" ");
     };
@@ -239,7 +246,12 @@
       "rpi": { bg: "#ffedd5", text: "#c2410c", bar: "#ea580c" },
       "codeci": { bg: "#fef3c7", text: "#92400e", bar: "#d97706" },
       "gobierno": { bg: "#dcfce7", text: "#166534", bar: "#16a34a" },
-      "legales": { bg: "#e0e7ff", text: "#3730a3", bar: "#4f46e5" }
+      "legales": { bg: "#e0e7ff", text: "#3730a3", bar: "#4f46e5" },
+      "secretaría de gobierno": { bg: "#f1f5f9", text: "#334155", bar: "#64748b" },
+      "dirección de municipios": { bg: "#dcfce7", text: "#15803d", bar: "#22c55e" },
+      "comisiones de fomento": { bg: "#fef3c7", text: "#b45309", bar: "#f59e0b" },
+      "veteranos de malvinas": { bg: "#ecf3e6", text: "#3b5219", bar: "#556b2f" },
+      "escribanía de gobierno": { bg: "#f3e8ff", text: "#6b21a8", bar: "#9333ea" }
     };
     const getAreaStyle = area => coloresArea[(area || "").toLowerCase().trim()] || { bg: "#f1f5f9", text: "#334155", bar: "#0284c7" };
 
@@ -265,7 +277,7 @@
       return registros.filter(r => {
         const textoBuscable = [r.expte, r.objeto, r.solicitantes, r.area_derivada, r.observaciones].join(" ").toLowerCase();
         const matchText = !q || textoBuscable.includes(q);
-        const matchArea = !area || (r.area_derivada || "").toLowerCase().includes(area);
+        const matchArea = !area || (r.area_derivada || "").toLowerCase().trim() === area;
         const matchEstado = !estado || (r.estado || "Pendiente") === estado;
         return matchText && matchArea && matchEstado;
       }).sort((a, b) => {
@@ -406,7 +418,7 @@
           </div>
           <p class="text-xs text-slate-700">${r.objeto || 'Sin objeto'}</p>
           ${r.solicitantes ? `<p class="text-[11px] text-slate-600">Solicitantes: ${r.solicitantes}</p>` : ''}
-          <p class="text-[11px] font-semibold text-sky-800">Área: ${formatArea(r.area_derivada) || 'Sin derivar'}</p>
+          <p class="text-[11px] font-semibold text-sky-800">Área derivada: ${formatArea(r.area_derivada) || 'Sin derivar'}</p>
         `;
         box.appendChild(div);
       });
@@ -451,7 +463,7 @@
                 <th>Fecha ingreso</th>
                 <th>1er vencimiento</th>
                 <th>Vencimiento de prórroga</th>
-                <th>Área</th>
+                <th>Área derivada</th>
                 <th>Estado</th>
                 <th>Fecha de respuesta</th>
                 <th>Observaciones</th>
@@ -495,7 +507,7 @@
       doc.autoTable({
         startY: 26,
         margin: { left: 8, right: 8 },
-        head: [['N° EXPTE', 'Objeto', 'Solicitantes', 'Ingreso', '1er Venc.', 'Prórroga', 'Área', 'Estado', 'Respuesta', 'Observaciones']],
+        head: [['N° EXPTE', 'Objeto', 'Solicitantes', 'Ingreso', '1er Venc.', 'Prórroga', 'Área derivada', 'Estado', 'Respuesta', 'Observaciones']],
         body,
         theme: 'grid',
         headStyles: { fillColor: [12, 45, 77], textColor: [255, 255, 255], fontSize: 7.5 },
