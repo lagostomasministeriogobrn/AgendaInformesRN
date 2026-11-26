@@ -9,18 +9,25 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     .preserve-format { white-space: pre-wrap; word-break: break-word; }
+
+    #login-overlay {
+      background:
+        linear-gradient(135deg, rgba(7, 22, 38, 0.72) 0%, rgba(12, 45, 77, 0.62) 55%, rgba(7, 22, 38, 0.78) 100%),
+        var(--login-bg, url("./bandera-rn.jpg")) center center / cover no-repeat;
+    }
   </style>
 </head>
 <body class="bg-slate-100 font-['DM_Sans'] text-slate-800 p-4 sm:p-8">
 
   <!-- LOGIN -->
-  <div id="login-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+  <div id="login-overlay" class="fixed inset-0 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
+    <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 sm:p-7 w-full max-w-md shadow-2xl border border-white/60">
+      <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full mb-2">Ministerio de Gobierno · Río Negro</span>
       <h2 class="text-xl font-bold text-slate-900">Acceso Administrador</h2>
-      <p class="text-xs text-slate-500 mt-1 mb-4">Ingresá la clave para gestionar los Pedidos de Informe.</p>
-      <input id="pass-input" type="password" placeholder="Clave de acceso" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-      <button id="login-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm transition">Ingresar al Panel</button>
-      <p id="login-msg" class="text-xs text-red-600 mt-2 text-center hidden">Clave incorrecta.</p>
+      <p class="text-xs text-slate-600 mt-1 mb-4">Ingresá la clave para gestionar los Pedidos de Informe.</p>
+      <input id="pass-input" type="password" placeholder="Clave de acceso" class="w-full border border-slate-300 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+      <button id="login-btn" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm shadow-sm transition">Ingresar al Panel</button>
+      <p id="login-msg" class="text-xs text-red-600 font-medium mt-2 text-center hidden">Clave incorrecta.</p>
     </div>
   </div>
 
@@ -126,11 +133,15 @@
 
   <script>
     const CLAVE_ADMIN = "rn2026";
+    const FONDO_LOGIN_URL = "./bandera-rn.jpg";
     const SUPABASE_URL = 'https://wyvxnzklfvhhzphubjik.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_Y8F-G_AnbvTRT7Z46vNoBQ_2TioQnLq';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = id => document.getElementById(id);
+    if ($("login-overlay")) {
+      $("login-overlay").style.setProperty("--login-bg", `url("${FONDO_LOGIN_URL}")`);
+    }
     let pedidos = [];
 
     const formatFechaArg = v => {
