@@ -14,8 +14,13 @@
     .card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 20px rgba(18,47,70,.06)}
     .field{width:100%;border:1px solid #bccbd4;border-radius:10px;padding:9px 12px;background:#fff;color:var(--ink);font:inherit;font-size:14px}
     .field:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,116,167,.13);outline:0}
+    .calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+    .day{min-height:66px;border:1px solid #e1e8ec;border-radius:10px;background:#fff;padding:6px;text-align:left;transition:.18s}
+    .day:hover{border-color:#4995bd;background:#f0f8fb}.day.muted{opacity:.36}.day.selected{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:#e8f4f9}
+    .day-bar{height:4px;border-radius:99px;margin-top:3px}
     .badge{display:inline-flex;align-items:center;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
     .preserve-format{white-space:pre-wrap;word-break:break-word}
+    @media(max-width:640px){.day{min-height:52px;padding:4px}}
 
     @keyframes latidoRojo {
       0%, 100% {
@@ -178,85 +183,121 @@
       </article>
     </section>
 
-    <!-- TABLA DE EXPEDIENTES -->
-    <section class="card p-4 sm:p-6 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-bold uppercase tracking-widest text-sky-700">Seguimiento Legislativo / Administrativo</p>
-          <h2 class="mt-0.5 text-xl font-bold text-slate-900">Listado de Pedidos de Informe</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="visible-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">0 visibles</span>
-          <button id="btn-word" type="button" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition">
-            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word
-          </button>
-          <button id="btn-pdf" type="button" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition">
-            <i data-lucide="download" class="w-3.5 h-3.5"></i> PDF
-          </button>
-        </div>
-      </div>
+    <!-- BLOQUE PRINCIPAL: TABLA DE PEDIDOS + CALENDARIO -->
+    <div class="grid items-start gap-6 xl:grid-cols-[1.45fr_.55fr]">
 
-      <!-- BUSCADOR Y FILTRO POR ÁREA DERIVADA -->
-      <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 items-end">
-        <div class="sm:col-span-5">
-          <label for="filter-search" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Buscador general</label>
-          <input id="filter-search" class="field" type="search" placeholder="N° Expte, Objeto, Solicitantes...">
+      <!-- TABLA DE EXPEDIENTES -->
+      <section class="card p-4 sm:p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-sky-700">Seguimiento Legislativo / Administrativo</p>
+            <h2 class="mt-0.5 text-xl font-bold text-slate-900">Listado de Pedidos de Informe</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="visible-count" class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1.5 rounded-lg">0 visibles</span>
+            <button id="btn-word" type="button" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition">
+              <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word
+            </button>
+            <button id="btn-pdf" type="button" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> PDF
+            </button>
+          </div>
         </div>
-        <div class="sm:col-span-3">
-          <label for="filter-area" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Filtrar por Área derivada</label>
-          <select id="filter-area" class="field">
-            <option value="">Todas las áreas</option>
-            <option value="igpj">IGPJ</option>
-            <option value="registro civil">Registro Civil</option>
-            <option value="rpi">RPI</option>
-            <option value="codeci">CODECI</option>
-            <option value="gobierno">Gobierno</option>
-            <option value="legales">Legales</option>
-            <option value="secretaría de gobierno">Secretaría de Gobierno</option>
-            <option value="dirección de municipios">Dirección de Municipios</option>
-            <option value="comisiones de fomento">Comisiones de Fomento</option>
-            <option value="veteranos de malvinas">Veteranos de Malvinas</option>
-            <option value="escribanía de gobierno">Escribanía de Gobierno</option>
-          </select>
-        </div>
-        <div class="sm:col-span-2">
-          <label for="filter-estado" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Estado</label>
-          <select id="filter-estado" class="field">
-            <option value="">Todos</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="Por finalizar">Por finalizar</option>
-            <option value="Respondido">Respondido</option>
-          </select>
-        </div>
-        <div class="sm:col-span-2">
-          <button id="btn-clear-filters" type="button" class="w-full py-2.5 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition">
-            Limpiar
-          </button>
-        </div>
-      </div>
 
-      <!-- TABLA -->
-      <div class="overflow-x-auto rounded-xl border border-slate-200">
-        <table class="w-full text-left border-collapse text-xs sm:text-sm">
-          <thead>
-            <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">N° EXPTE</th>
-              <th class="py-3 px-2.5 font-bold min-w-[180px]">Objeto</th>
-              <th class="py-3 px-2.5 font-bold min-w-[140px]">Solicitantes</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha ingreso</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">1er vencimiento</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">Venc. prórroga</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">Área derivada</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">Estado</th>
-              <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha respuesta</th>
-              <th class="py-3 px-2.5 font-bold min-w-[180px]">Observaciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-pedidos" class="divide-y divide-slate-200 bg-white"></tbody>
-        </table>
-      </div>
-      <p id="empty-msg" class="hidden text-center text-sm text-slate-500 py-6">No se encontraron pedidos con esos filtros.</p>
-    </section>
+        <!-- BUSCADOR Y FILTRO POR ÁREA DERIVADA -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200 items-end">
+          <div class="sm:col-span-5">
+            <label for="filter-search" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Buscador general</label>
+            <input id="filter-search" class="field" type="search" placeholder="N° Expte, Objeto, Solicitantes...">
+          </div>
+          <div class="sm:col-span-3">
+            <label for="filter-area" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Filtrar por Área derivada</label>
+            <select id="filter-area" class="field">
+              <option value="">Todas las áreas</option>
+              <option value="igpj">IGPJ</option>
+              <option value="registro civil">Registro Civil</option>
+              <option value="rpi">RPI</option>
+              <option value="codeci">CODECI</option>
+              <option value="gobierno">Gobierno</option>
+              <option value="legales">Legales</option>
+              <option value="secretaría de gobierno">Secretaría de Gobierno</option>
+              <option value="dirección de municipios">Dirección de Municipios</option>
+              <option value="comisiones de fomento">Comisiones de Fomento</option>
+              <option value="veteranos de malvinas">Veteranos de Malvinas</option>
+              <option value="escribanía de gobierno">Escribanía de Gobierno</option>
+              <option value="dirección de tierras">Dirección de Tierras</option>
+              <option value="secretaría de trabajo">Secretaría de Trabajo</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="filter-estado" class="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">Estado</label>
+            <select id="filter-estado" class="field">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Por finalizar">Por finalizar</option>
+              <option value="Respondido">Respondido</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <button id="btn-clear-filters" type="button" class="w-full py-2.5 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition">
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- TABLA -->
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">N° EXPTE</th>
+                <th class="py-3 px-2.5 font-bold min-w-[180px]">Objeto</th>
+                <th class="py-3 px-2.5 font-bold min-w-[140px]">Solicitantes</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha ingreso</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">1er vencimiento</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Venc. prórroga</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Área derivada</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Estado</th>
+                <th class="py-3 px-2.5 font-bold whitespace-nowrap">Fecha respuesta</th>
+                <th class="py-3 px-2.5 font-bold min-w-[180px]">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-pedidos" class="divide-y divide-slate-200 bg-white"></tbody>
+          </table>
+        </div>
+        <p id="empty-msg" class="hidden text-center text-sm text-slate-500 py-6">No se encontraron pedidos con esos filtros.</p>
+      </section>
+
+      <!-- CALENDARIO DE VENCIMIENTOS -->
+      <aside class="card p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-sky-700">Control de Plazos</p>
+            <h2 class="mt-0.5 text-lg font-bold text-slate-900">Vencimientos</h2>
+          </div>
+          <div class="flex gap-1">
+            <button id="prev-month" class="rounded-lg border border-slate-300 bg-white p-1.5 hover:bg-slate-50" type="button"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            <button id="next-month" class="rounded-lg border border-slate-300 bg-white p-1.5 hover:bg-slate-50" type="button"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <h3 id="calendar-title" class="serif text-base font-bold capitalize text-slate-800"></h3>
+          <button id="today-btn" class="rounded-lg px-2.5 py-1.5 text-xs font-bold text-white" style="background: var(--navy);" type="button">Hoy</button>
+        </div>
+
+        <div class="calendar text-center text-[11px] font-bold text-slate-500">
+          <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+        </div>
+        <div id="calendar-grid" class="calendar"></div>
+
+        <div class="border-t border-slate-200 pt-3">
+          <h4 id="selected-day-title" class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2"></h4>
+          <div id="selected-day-list" class="space-y-2"></div>
+        </div>
+      </aside>
+
+    </div>
   </main>
 
   <footer class="mt-8 px-4 py-5" style="background: var(--color-1);">
@@ -270,6 +311,7 @@
 
     const $ = id => document.getElementById(id);
     const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const parseDate = v => { const p = v.split("-"); return new Date(Number(p[0]), Number(p[1])-1, Number(p[2]), 12, 0, 0); };
     const formatFechaArg = v => {
       if (!v) return "—";
       const p = v.split("-");
@@ -291,22 +333,30 @@
 
     const getVencimientoVigente = r => r.vencimiento_prorroga || r.primer_vencimiento || "";
 
+    const monthFormat = new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" });
+    const dayFormat = new Intl.DateTimeFormat("es-AR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
     let registros = [];
+    let today = new Date();
+    let activeMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let selectedDate = iso(today);
 
     const coloresArea = {
-      "igpj": { bg: "#e0f2fe", text: "#0369a1" },
-      "registro civil": { bg: "#ccfbf1", text: "#0f766e" },
-      "rpi": { bg: "#ffedd5", text: "#c2410c" },
-      "codeci": { bg: "#fef3c7", text: "#92400e" },
-      "gobierno": { bg: "#dcfce7", text: "#166534" },
-      "legales": { bg: "#e0e7ff", text: "#3730a3" },
-      "secretaría de gobierno": { bg: "#f1f5f9", text: "#334155" },
-      "dirección de municipios": { bg: "#dcfce7", text: "#15803d" },
-      "comisiones de fomento": { bg: "#fef3c7", text: "#b45309" },
-      "veteranos de malvinas": { bg: "#ecf3e6", text: "#3b5219" },
-      "escribanía de gobierno": { bg: "#f3e8ff", text: "#6b21a8" }
+      "igpj": { bg: "#e0f2fe", text: "#0369a1", bar: "#0284c7" },
+      "registro civil": { bg: "#ccfbf1", text: "#0f766e", bar: "#14b8a6" },
+      "rpi": { bg: "#ffedd5", text: "#c2410c", bar: "#ea580c" },
+      "codeci": { bg: "#fef3c7", text: "#92400e", bar: "#d97706" },
+      "gobierno": { bg: "#dcfce7", text: "#166534", bar: "#16a34a" },
+      "legales": { bg: "#e0e7ff", text: "#3730a3", bar: "#4f46e5" },
+      "secretaría de gobierno": { bg: "#f1f5f9", text: "#334155", bar: "#64748b" },
+      "dirección de municipios": { bg: "#dcfce7", text: "#15803d", bar: "#22c55e" },
+      "comisiones de fomento": { bg: "#fef3c7", text: "#b45309", bar: "#f59e0b" },
+      "veteranos de malvinas": { bg: "#ecf3e6", text: "#3b5219", bar: "#556b2f" },
+      "escribanía de gobierno": { bg: "#f3e8ff", text: "#6b21a8", bar: "#9333ea" },
+      "dirección de tierras": { bg: "#fef3c7", text: "#9a3412", bar: "#ea580c" },
+      "secretaría de trabajo": { bg: "#cffafe", text: "#0e7490", bar: "#06b6d4" }
     };
-    const getAreaStyle = area => coloresArea[(area || "").toLowerCase().trim()] || { bg: "#f1f5f9", text: "#334155" };
+    const getAreaStyle = area => coloresArea[(area || "").toLowerCase().trim()] || { bg: "#f1f5f9", text: "#334155", bar: "#0284c7" };
 
     const getEstadoBadge = est => {
       if (est === "Por finalizar") return `<span class="badge bg-amber-100 text-amber-800 border border-amber-300">Por finalizar</span>`;
@@ -414,6 +464,81 @@
       });
     }
 
+    function renderCalendario() {
+      const year = activeMonth.getFullYear(), month = activeMonth.getMonth();
+      $("calendar-title").textContent = monthFormat.format(activeMonth);
+      const grid = $("calendar-grid");
+      grid.innerHTML = "";
+
+      const first = new Date(year, month, 1);
+      const offset = (first.getDay() + 6) % 7;
+      const start = new Date(year, month, 1 - offset);
+
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const key = iso(d);
+        const delDia = registros.filter(r => r.primer_vencimiento === key || r.vencimiento_prorroga === key);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "day";
+        if (d.getMonth() !== month) btn.classList.add("muted");
+        if (key === selectedDate) btn.classList.add("selected");
+
+        btn.innerHTML = `<div class="flex items-center justify-between"><strong class="text-xs">${d.getDate()}</strong><span class="text-[10px] font-bold text-sky-700">${delDia.length || ""}</span></div>`;
+
+        delDia.forEach(item => {
+          const bar = document.createElement("div");
+          bar.className = "day-bar";
+          bar.style.backgroundColor = item.vencimiento_prorroga === key ? "#7c3aed" : getAreaStyle(item.area_derivada).bar;
+          btn.appendChild(bar);
+        });
+
+        btn.onclick = () => {
+          selectedDate = key;
+          if (d.getMonth() !== activeMonth.getMonth()) {
+            activeMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+          }
+          renderCalendario();
+          renderDetalleDia();
+        };
+        grid.appendChild(btn);
+      }
+    }
+
+    function renderDetalleDia() {
+      $("selected-day-title").textContent = `Vencimientos · ${dayFormat.format(parseDate(selectedDate))}`;
+      const box = $("selected-day-list");
+      const delDia = registros.filter(r => r.primer_vencimiento === selectedDate || r.vencimiento_prorroga === selectedDate);
+      box.innerHTML = "";
+
+      if (!delDia.length) {
+        box.innerHTML = `<p class="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Sin vencimientos para esta fecha.</p>`;
+        return;
+      }
+
+      delDia.forEach(r => {
+        const esProrroga = r.vencimiento_prorroga === selectedDate;
+        const tipoTag = esProrroga
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">Venc. Prórroga</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">1er Vencimiento</span>`;
+
+        const div = document.createElement("div");
+        div.className = "rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1";
+        div.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <strong class="text-xs text-slate-900">Expte: ${r.expte || 'S/N'}</strong>
+            <div class="flex items-center gap-1">${tipoTag}${getEstadoBadge(r.estado)}</div>
+          </div>
+          <p class="text-xs text-slate-700">${r.objeto || 'Sin objeto'}</p>
+          ${r.solicitantes ? `<p class="text-[11px] text-slate-600">Solicitantes: ${r.solicitantes}</p>` : ''}
+          <p class="text-[11px] font-semibold text-sky-800">Área derivada: ${formatArea(r.area_derivada) || 'Sin derivar'}</p>
+        `;
+        box.appendChild(div);
+      });
+    }
+
     // EXPORTAR WORD
     $("btn-word").onclick = () => {
       const lista = getFiltrados();
@@ -510,10 +635,13 @@
     function renderAll() {
       renderStats();
       renderTabla();
+      renderCalendario();
+      renderDetalleDia();
       if (window.lucide) lucide.createIcons();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      // Cerrar pantalla de bienvenida automáticamente o al hacer clic
       const welcome = $("welcome-screen");
       const cerrarWelcome = () => welcome && welcome.classList.add("fade-out");
       setTimeout(cerrarWelcome, 1650);
@@ -529,6 +657,14 @@
         $("filter-area").value = "";
         $("filter-estado").value = "";
         renderTabla();
+      };
+      $("prev-month").onclick = () => { activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() - 1, 1); renderCalendario(); };
+      $("next-month").onclick = () => { activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 1); renderCalendario(); };
+      $("today-btn").onclick = () => {
+        activeMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        selectedDate = iso(new Date());
+        renderCalendario();
+        renderDetalleDia();
       };
     });
   </script>
