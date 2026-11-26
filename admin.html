@@ -11,17 +11,26 @@
     .preserve-format { white-space: pre-wrap; word-break: break-word; }
 
     #login-overlay {
-      background:
-        linear-gradient(135deg, rgba(7, 22, 38, 0.72) 0%, rgba(12, 45, 77, 0.62) 55%, rgba(7, 22, 38, 0.78) 100%),
-        var(--login-bg, url("./bandera-rn.jpg")) center center / cover no-repeat;
+      background-color: #071626;
+    }
+
+    #login-bg-img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
     }
   </style>
 </head>
 <body class="bg-slate-100 font-['DM_Sans'] text-slate-800 p-4 sm:p-8">
 
   <!-- LOGIN -->
-  <div id="login-overlay" class="fixed inset-0 backdrop-blur-[2px] z-50 flex items-center justify-center p-4">
-    <div class="bg-white/95 backdrop-blur-md rounded-2xl p-6 sm:p-7 w-full max-w-md shadow-2xl border border-white/60">
+  <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+    <div class="pointer-events-none absolute inset-0">
+      <img id="login-bg-img" src="./bandera-rn.jpg" alt="Bandera de Río Negro" class="select-none opacity-90">
+    </div>
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#071626]/55 via-[#0c2d4d]/40 to-[#071626]/65"></div>
+
+    <div class="relative z-10 bg-white/95 backdrop-blur-md rounded-2xl p-6 sm:p-7 w-full max-w-md shadow-2xl border border-white/60">
       <span class="inline-block text-[11px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full mb-2">Ministerio de Gobierno · Río Negro</span>
       <h2 class="text-xl font-bold text-slate-900">Acceso Administrador</h2>
       <p class="text-xs text-slate-600 mt-1 mb-4">Ingresá la clave para gestionar los Pedidos de Informe.</p>
@@ -139,8 +148,8 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const $ = id => document.getElementById(id);
-    if ($("login-overlay")) {
-      $("login-overlay").style.setProperty("--login-bg", `url("${FONDO_LOGIN_URL}")`);
+    if ($("login-bg-img")) {
+      $("login-bg-img").src = FONDO_LOGIN_URL;
     }
     let pedidos = [];
 
@@ -275,3 +284,6 @@
   </script>
 </body>
 </html>
+```[cite: 8]
+
+Con `object-fill` va a cubrir el 100% de la pantalla de borde a borde sin franjas laterales ni recortes arriba o abajo.
